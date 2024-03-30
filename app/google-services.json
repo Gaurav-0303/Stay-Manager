@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "976515097588",
+    "project_id": "stay-manager-9d638",
+    "storage_bucket": "stay-manager-9d638.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:976515097588:android:e9a48cf775ad56d1168fa1",
+        "android_client_info": {
+          "package_name": "com.gmail_bssushant2003.hotelstay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALZ322Rs0E5GyefuXorz1E9oDtSvJbVdM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
