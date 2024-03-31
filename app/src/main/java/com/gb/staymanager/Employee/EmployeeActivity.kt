@@ -1,7 +1,7 @@
 package com.gb.staymanager.Employee
 
-import android.app.AlertDialog
 import android.app.Dialog
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
@@ -21,18 +21,31 @@ import com.gb.staymanager.databinding.DialogAddEmployeeBinding
 import com.gb.staymanager.databinding.DialogEmployeeBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 class EmployeeActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityEmployeeBinding
     private lateinit var employeeList : ArrayList<Pair<String, String>>
     private lateinit var employeeListAdapter : EmployeeListAdapter
+    private val database = Firebase.database
+    private lateinit var auth : FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEmployeeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        auth = Firebase.auth
         employeeList = arrayListOf()
+
+        // Retrieve employee data from Firebase
+        fetchEmployeeData()
 
         //transparent background
         window.apply {
@@ -54,6 +67,41 @@ class EmployeeActivity : AppCompatActivity() {
         binding.addButtonBottom.setOnClickListener { addEmployeeDialogBox() }
     }
 
+    private fun fetchEmployeeData() {
+
+        // Show progress dialog
+        val progressBar = ProgressDialog(this).apply {
+            setMessage("Retrieving Employee Data...")
+            setCancelable(false)
+            setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        }
+        progressBar.show()
+
+        val ref = database.getReference("${auth.currentUser?.uid}")
+
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                progressBar.dismiss()
+
+                for (childSnapshot in snapshot.children) {
+                    val name = childSnapshot.child("name").value.toString()
+                    val phone = childSnapshot.child("phone").value.toString()
+                    employeeList.add(Pair(name, phone))
+                }
+
+                employeeListAdapter.notifyDataSetChanged()
+                changeLayout()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                progressBar.dismiss()
+                // Handle error if data retrieval is cancelled
+                Toast.makeText(this@EmployeeActivity, "Failed to retrieve employee data", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+
     private fun addEmployeeDialogBox() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_employee, null)
         val nameEditText = dialogView.findViewById<EditText>(R.id.name_edit_text)
@@ -67,10 +115,31 @@ class EmployeeActivity : AppCompatActivity() {
                 val number = numberEditText.text.toString()
 
                 if (name.isNotEmpty() && number.isNotEmpty()) {
+                    dialog.dismiss()
+
+                    val progressBar = ProgressDialog(this).apply {
+                        setMessage("Adding Employee...")
+                        setCancelable(false)
+                        setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                    }
+                    progressBar.show()
+
+                    //store data in realtime firebase
+                    val path = "${auth.currentUser?.uid}/$number"
+                    val ref = database.getReference(path)
+                    ref.setValue(mapOf("name" to name, "phone" to number))
+                        .addOnSuccessListener {
+                            progressBar.dismiss()
+                            Toast.makeText(this, "Employee Added Successfully", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            progressBar.dismiss()
+                            Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
+                        }
+
                     employeeList.add(0, Pair(name, number))
                     employeeListAdapter.notifyDataSetChanged()
                     changeLayout()
-                    dialog.dismiss()
                 } else {
                     Toast.makeText(this, "Please fill all information", Toast.LENGTH_SHORT).show()
                 }

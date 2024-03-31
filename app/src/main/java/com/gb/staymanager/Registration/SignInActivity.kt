@@ -1,5 +1,6 @@
 package com.gb.staymanager.Registration
 
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -23,7 +24,6 @@ class SignInActivity : AppCompatActivity() {
     private lateinit var etPassword:TextInputLayout
     private lateinit var auth:FirebaseAuth
     private lateinit var forgetbutton: Button
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +58,16 @@ class SignInActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val progressBar = ProgressDialog(this).apply {
+                setMessage("Logging in...")
+                setCancelable(false)
+                setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            }
+            progressBar.show()
+
             auth.signInWithEmailAndPassword(email,password)
                 .addOnCompleteListener(this){task ->
+                    progressBar.dismiss()
                     if(task.isSuccessful){
                         val verification = auth.currentUser?.isEmailVerified
                         if(verification == true){

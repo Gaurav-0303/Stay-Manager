@@ -1,9 +1,11 @@
 package com.gb.staymanager.Employee
 
 import android.app.DatePickerDialog
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
@@ -17,6 +19,10 @@ import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityAddDepositBinding
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -29,12 +35,22 @@ class AddDepositActivity : AppCompatActivity() {
     private var selectedDate: String? = null
     private var isCash: Boolean = false
     private var isOnline: Boolean = false
+    private lateinit var auth : FirebaseAuth
+    private var db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddDepositBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        auth = Firebase.auth
         depositList = arrayListOf()
+
+        //receive intent data
+        val name = intent.getStringExtra("name")
+        val number = intent.getStringExtra("phone")
+
+        // Retrieve deposit data from Firebase
+        fetchDepositData(number!!)
 
         //transparent background
         window.apply {
@@ -48,19 +64,51 @@ class AddDepositActivity : AppCompatActivity() {
             finish()
         }
 
-        //receive intent data
-        val name = intent.getStringExtra("name")
-        val number = intent.getStringExtra("phone")
-
         //set up recycler view
         setUpRecyclerView()
 
         //adding employee by clicking plus button
-        binding.addButtonCenter.setOnClickListener { addDialogBox() }
-        binding.addButtonBottom.setOnClickListener { addDialogBox() }
+        binding.addButtonCenter.setOnClickListener { addDialogBox(number!!) }
+        binding.addButtonBottom.setOnClickListener { addDialogBox(number!!) }
     }
 
-    private fun addDialogBox() {
+    private fun fetchDepositData(number: String) {
+        // Show progress dialog
+        val progressBar = ProgressDialog(this).apply {
+            setMessage("Retrieving Deposit Data...")
+            setCancelable(false)
+            setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        }
+        progressBar.show()
+
+        val collectionRef = db.collection(auth.currentUser?.email!!)
+            .document("deposit")
+            .collection(number)
+
+        collectionRef.get()
+            .addOnSuccessListener { querySnapshot ->
+                progressBar.dismiss()
+                for (document in querySnapshot.documents) {
+                    val data = document.data
+                    val date = data?.get("date").toString()
+                    val amount = data?.get("amount").toString()
+                    val cash : Boolean = data?.get("cash") as Boolean
+                    val online : Boolean = data.get("online") as Boolean
+                    val depositSalary = DepositSalary(date, amount, cash, online)
+
+                    depositList.add(0, depositSalary)
+                }
+                depositList.sortWith(compareByDescending { it.date })
+                depositSalaryListAdapter.notifyDataSetChanged()
+                changeLayout()
+            }
+            .addOnFailureListener { exception ->
+                progressBar.dismiss()
+            }
+    }
+
+
+    private fun addDialogBox(phone : String) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_deposit_or_salary, null)
         val amountEditText = dialogView.findViewById<EditText>(R.id.amount_edit_text)
 
@@ -72,14 +120,46 @@ class AddDepositActivity : AppCompatActivity() {
             .setTitle("Add Salary")
             .setView(dialogView)
             .setPositiveButton("Add") { dialog, _ ->
-                val amount = amountEditText.text.toString()
+                val amount = amountEditText.text.toString() + "₹"
 
                 if (amount.isNotEmpty() && selectedDate != null && (isCash || isOnline)) {
-                    depositList.add(0, DepositSalary(selectedDate!!, amount, isCash, isOnline))
+                    dialog.dismiss()
+
+                    val progressBar = ProgressDialog(this).apply {
+                        setMessage("Adding Deposit...")
+                        setCancelable(false)
+                        setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                    }
+                    progressBar.show()
+
+                    var dashedDate : String = ""
+                    for(i in selectedDate!!){
+                        dashedDate += if(i == '/') '-'
+                        else i;
+                    }
+
+                    val depositSalary = DepositSalary(selectedDate!!, amount, isCash, isOnline)
+
+                    //store data in firestore
+                    val docRef = db.collection(auth.currentUser?.email!!)
+                        .document("deposit")
+                        .collection(phone)
+                        .document()
+
+                    docRef.set(depositSalary)
+                        .addOnSuccessListener {
+                            progressBar.dismiss()
+                            Toast.makeText(this, "Deposit entry added successfully", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            progressBar.dismiss()
+                            Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
+                        }
+
+                    depositList.add(0, depositSalary)
                     depositList.sortWith(compareByDescending { it.date })
                     depositSalaryListAdapter.notifyDataSetChanged()
                     changeLayout()
-                    dialog.dismiss()
                 } else {
                     Toast.makeText(this, "Please fill all information", Toast.LENGTH_SHORT).show()
                 }

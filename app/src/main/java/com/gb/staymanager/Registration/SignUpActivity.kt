@@ -1,6 +1,7 @@
 package com.gb.staymanager.Registration
 
 import android.annotation.SuppressLint
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -91,9 +92,16 @@ class SignUpActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val progressBar = ProgressDialog(this).apply {
+                setMessage("Registering...")
+                setCancelable(false)
+                setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            }
+            progressBar.show()
 
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this){task ->
+                    progressBar.dismiss()
                     if(task.isSuccessful){
                         val user = auth.currentUser
                         auth.currentUser?.sendEmailVerification()

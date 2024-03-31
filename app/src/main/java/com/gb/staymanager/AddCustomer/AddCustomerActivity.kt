@@ -1,6 +1,7 @@
 package com.gb.staymanager.AddCustomer
 
 import android.app.DatePickerDialog
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +15,10 @@ import com.gb.staymanager.MainActivity
 import com.gb.staymanager.Models.CustomerBill
 import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityAddCustomerBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -26,11 +31,14 @@ class AddCustomerActivity : AppCompatActivity() {
     private var selectedDate: String? = null
     private var isCash: Boolean = false
     private var isOnline: Boolean = false
+    private lateinit var auth : FirebaseAuth
+    private var db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddCustomerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        auth = Firebase.auth
 
         //transparent background
         window.apply {
@@ -65,6 +73,14 @@ class AddCustomerActivity : AppCompatActivity() {
 
     private fun generateBill() {
         if (isAllFilled()) {
+
+            val progressBar = ProgressDialog(this).apply {
+                setMessage("Adding Customer...")
+                setCancelable(false)
+                setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            }
+            progressBar.show()
+
             val customerBill = CustomerBill(
                 selectedDate!!,
                 binding.editTextCustomerName.text.toString(),
@@ -77,7 +93,27 @@ class AddCustomerActivity : AppCompatActivity() {
                 selectedRoom,
                 selectedSource
             )
-            Toast.makeText(this, "Bill Generated Successfully", Toast.LENGTH_LONG).show()
+
+            var dashedDate : String = ""
+            for(i in selectedDate!!){
+                dashedDate += if(i == '/') '-'
+                else i;
+            }
+
+            //store data in firestore
+            val docRef = db.collection(auth.currentUser?.email!!).document("customer")
+                .collection(binding.editTextPhoneNumber.text.toString()).document()
+
+            docRef.set(customerBill)
+                .addOnSuccessListener {
+                    progressBar.dismiss()
+                    Toast.makeText(this, "Customer added successfully on $selectedDate", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    progressBar.dismiss()
+                    Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
+                }
+
         } else {
             Toast.makeText(this, "Please fill above details", Toast.LENGTH_LONG).show()
         }
