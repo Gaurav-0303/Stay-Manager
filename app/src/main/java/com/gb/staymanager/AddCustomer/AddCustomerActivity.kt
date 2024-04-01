@@ -17,6 +17,7 @@ import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityAddCustomerBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
@@ -33,6 +34,7 @@ class AddCustomerActivity : AppCompatActivity() {
     private var isOnline: Boolean = false
     private lateinit var auth : FirebaseAuth
     private var db = Firebase.firestore
+    private val database = Firebase.database
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,12 +108,21 @@ class AddCustomerActivity : AppCompatActivity() {
 
             docRef.set(customerBill)
                 .addOnSuccessListener {
-                    progressBar.dismiss()
                     Toast.makeText(this, "Customer added successfully on $selectedDate", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
-                    progressBar.dismiss()
                     Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
+                }
+
+            //store customer in realtime firebase
+            val path = "phone/${auth.currentUser?.uid}/${binding.editTextPhoneNumber.text.toString()}"
+            val ref = database.getReference(path)
+            ref.setValue(mapOf("phone" to binding.editTextPhoneNumber.text.toString()))
+                .addOnSuccessListener {
+                    progressBar.dismiss()
+                }
+                .addOnFailureListener { e ->
+                    progressBar.dismiss()
                 }
 
         } else {

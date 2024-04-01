@@ -92,7 +92,7 @@
             android:layout_margin="12dp"
             android:fontFamily="sans-serif-medium"
             android:padding="4dp"
-            android:text="Last Month Report"
+            android:text="Monthly Report"
             android:textColor="@color/black"
             android:textSize="24sp" />
 

@@ -9,7 +9,6 @@
     android:padding="20dp"
     tools:context=".Registration.SignUpActivity">
 
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="110dp"
