@@ -13,6 +13,12 @@
         android:theme="@style/Theme.StayManager"
         tools:targetApi="31">
         <activity
+            android:name=".PdfGenerator.PdfGenerationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Report.DetailedReportActivity"
+            android:exported="false" />
+        <activity
             android:name=".Report.DisplayReportActivity"
             android:exported="false" />
         <activity
@@ -47,7 +53,7 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
     </application>
 
 </manifest>

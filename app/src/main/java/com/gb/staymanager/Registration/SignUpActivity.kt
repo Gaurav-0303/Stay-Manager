@@ -59,8 +59,6 @@ class SignUpActivity : AppCompatActivity() {
             }
         }
 
-
-
         registerbtn.setOnClickListener{
 
             val email = tvEmail.editText?.text.toString()

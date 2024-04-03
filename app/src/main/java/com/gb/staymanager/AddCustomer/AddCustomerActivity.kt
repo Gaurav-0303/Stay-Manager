@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.gb.staymanager.MainActivity
 import com.gb.staymanager.Models.CustomerBill
+import com.gb.staymanager.PdfGenerator.PdfGenerationActivity
 import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityAddCustomerBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -125,6 +126,10 @@ class AddCustomerActivity : AppCompatActivity() {
                     progressBar.dismiss()
                 }
 
+            //pass customer by intent
+            val intent = Intent(this, PdfGenerationActivity::class.java)
+            intent.putExtra("customerBill", customerBill)
+            startActivity(intent)
         } else {
             Toast.makeText(this, "Please fill above details", Toast.LENGTH_LONG).show()
         }

@@ -28,6 +28,7 @@ class ReportFeaturesActivity : AppCompatActivity() {
     private var endDateG : String? = null
     private lateinit var today : LocalDate
     private lateinit var firstDayOfMonth : LocalDate
+    private lateinit var lastDayOfMonth : LocalDate
     private lateinit var dateFormatter : DateTimeFormatter
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -63,6 +64,7 @@ class ReportFeaturesActivity : AppCompatActivity() {
         dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         today = LocalDate.now()
         firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth())
+        lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth())
     }
 
     private fun isFilled(): Boolean {
@@ -77,12 +79,12 @@ class ReportFeaturesActivity : AppCompatActivity() {
         if(isFilled()){
             val intent = Intent(this, DisplayReportActivity::class.java)
             if(isDaySelected){
-                intent.putExtra("start", today.format(dateFormatter))
-                intent.putExtra("end", today.format(dateFormatter))
+                intent.putExtra("start", today.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                intent.putExtra("end", today.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
             }
             else if(isMonthSelected){
-                intent.putExtra("start", today.format(dateFormatter))
-                intent.putExtra("end", firstDayOfMonth.format(dateFormatter))
+                intent.putExtra("start", firstDayOfMonth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                intent.putExtra("end", lastDayOfMonth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
             }
             else if(startDateG?.isNotEmpty()!! && endDateG?.isNotEmpty()!!){
                 intent.putExtra("start", startDateG)

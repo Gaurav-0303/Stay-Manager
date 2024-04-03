@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".Report.DisplayReportActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -66,25 +67,27 @@
         app:layout_constraintTop_toBottomOf="@id/recycler_view">
 
         <TextView
+            android:id="@+id/total_sum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
-            android:text="Total : 22000₹"
+            tools:text="Total : 22000₹"
             android:textColor="@color/white"
-            android:textSize="24sp" />
+            android:textSize="18sp" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
+            android:layout_marginEnd="12dp"
             android:layout_height="match_parent">
 
             <TextView
                 android:id="@+id/cash"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="6dp"
-                android:text="Cash : 13000₹"
+                tools:text="Cash : 13000₹"
+                android:padding="6dp"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -93,9 +96,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="6dp"
-                android:text="Online : 9000₹"
+                tools:text="Online : 9000₹"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
