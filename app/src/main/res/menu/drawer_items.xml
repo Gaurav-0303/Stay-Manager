@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:id="@+id/group1">
+
+        <item
+            android:id="@+id/add_customer"
+            android:title="Add Customer"
+            android:icon="@drawable/person_img"/>
+
+        <item
+            android:id="@+id/employee"
+            android:title="Employee"
+            android:icon="@drawable/employee_img"/>
+
+        <item
+            android:id="@+id/report"
+            android:title="Report"
+            android:icon="@drawable/report_img" />
+    </group>
+
+    <group android:id="@+id/group2">
+
+        <item
+            android:id="@+id/contactus"
+            android:title="Contact Us"
+            android:icon="@drawable/contact_img"/>
+
+        <item
+            android:id="@+id/logout"
+            android:title="LogOut"
+            android:icon="@drawable/logout_img"/>
+    </group>
+
+
+
+</menu>
