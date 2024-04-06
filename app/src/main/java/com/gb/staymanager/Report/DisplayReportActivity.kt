@@ -157,7 +157,7 @@ class DisplayReportActivity : AppCompatActivity() {
                 }
                 reportList.sortByDescending { LocalDate.parse(it.date, dateFormat) }
                 reportListAdapter.notifyDataSetChanged()
-                delay(30)
+                delay(500)
                 showTotal()
             } catch (_: Exception) {
 
