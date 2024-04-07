@@ -3,16 +3,18 @@ package com.gb.staymanager.PdfGenerator
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import com.gb.staymanager.Models.CustomerBill
 import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityPdfGenerationBinding
+import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
+import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle
 import me.kariot.invoicegenerator.data.ModelInvoiceFooter
 import me.kariot.invoicegenerator.data.ModelInvoiceHeader
 import me.kariot.invoicegenerator.data.ModelInvoiceInfo
@@ -20,7 +22,6 @@ import me.kariot.invoicegenerator.data.ModelInvoiceItem
 import me.kariot.invoicegenerator.data.ModelInvoicePriceInfo
 import me.kariot.invoicegenerator.data.ModelTableHeader
 import me.kariot.invoicegenerator.utils.InvoiceGenerator
-
 class PdfGenerationActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityPdfGenerationBinding
@@ -48,6 +49,8 @@ class PdfGenerationActivity : AppCompatActivity() {
 
         customerBill = intent.getSerializableExtra("customerBill") as CustomerBill
 
+        val fileUri = createPDFFile()
+        displayPDF(fileUri)
 
     }
 
@@ -59,7 +62,7 @@ class PdfGenerationActivity : AppCompatActivity() {
         requestStoragePermission.launch(Constants.storagePermission)
     }
 
-    private fun createPDFFile(){
+    private fun createPDFFile() : Uri {
         val invoiceAddress = ModelInvoiceHeader.ModelAddress(
             "Line 1",
             "Line 2",
@@ -125,20 +128,41 @@ class PdfGenerationActivity : AppCompatActivity() {
         }
 
         val fileUri = pdfGenerator.generatePDF("${(0..99999).random()}.pdf")
-        try{
+
+        return fileUri
+
+    }
+
+    private fun toast(s: String){
+        Toast.makeText(this,s,Toast.LENGTH_SHORT).show()
+    }
+
+    private fun displayPDF(fileUri: Uri){
+        val pdfView = findViewById<com.github.barteksc.pdfviewer.PDFView>(R.id.pdfView)
+        pdfView.fromUri(fileUri)
+            .onLoad(onLoadCompleteListener)
+            .scrollHandle(DefaultScrollHandle(this))
+            .spacing(10)
+            .load()
+    }
+
+    fun downloadPDF(view: View){
+        val fileUri = createPDFFile()
+
+        try {
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setDataAndType(fileUri,"application/pdf")
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startActivity(intent)
-
-
         }catch (e: ActivityNotFoundException){
             e.printStackTrace()
             toast("There is no PDF Viewer")
         }
     }
 
-    private fun toast(s: String){
-        Toast.makeText(this,s,Toast.LENGTH_SHORT).show()
+    private val onLoadCompleteListener = object : OnLoadCompleteListener{
+        override fun loadComplete(nbPages: Int){
+            toast("PDF Loaded Successfully")
+        }
     }
 }
