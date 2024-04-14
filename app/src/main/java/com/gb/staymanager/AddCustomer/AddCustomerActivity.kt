@@ -2,8 +2,10 @@ package com.gb.staymanager.AddCustomer
 
 import android.app.DatePickerDialog
 import android.app.ProgressDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -13,7 +15,6 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.gb.staymanager.MainActivity
 import com.gb.staymanager.Models.CustomerBill
-import com.gb.staymanager.PdfGenerator.PdfGenerationActivity
 import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityAddCustomerBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -21,11 +22,20 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import me.kariot.invoicegenerator.data.ModelInvoiceFooter
+import me.kariot.invoicegenerator.data.ModelInvoiceHeader
+import me.kariot.invoicegenerator.data.ModelInvoiceInfo
+import me.kariot.invoicegenerator.data.ModelInvoiceItem
+import me.kariot.invoicegenerator.data.ModelInvoicePriceInfo
+import me.kariot.invoicegenerator.data.ModelTableHeader
+import me.kariot.invoicegenerator.utils.InvoiceGenerator
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 class AddCustomerActivity : AppCompatActivity() {
+
+
 
     private lateinit var binding: ActivityAddCustomerBinding
     private var selectedRoom: String = "Select Room"
@@ -36,6 +46,21 @@ class AddCustomerActivity : AppCompatActivity() {
     private lateinit var auth : FirebaseAuth
     private var db = Firebase.firestore
     private val database = Firebase.database
+
+    private val requestStoragePermission = requestMultiplePermissions { isGranted ->
+        if(isGranted){
+            val customerBill: CustomerBill? = retriveCustomerBill()
+
+            if(customerBill != null){
+                createPDFFile(customerBill)
+            }else{
+                toast("Unable to generate PDF")
+            }
+        }
+        else{
+            toast("Permission Denied")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,10 +96,104 @@ class AddCustomerActivity : AppCompatActivity() {
         isCashOrOnline()
 
         //generate bill
-        binding.cardGenerate.setOnClickListener { generateBill() }
+        binding.cardGenerate.setOnClickListener { val customerBill = generateBill()
+            if(customerBill != null){
+                generatePDF(it, customerBill)
+            }else{
+                toast("Unable to Generate PDF")
+            }
+
+        }
+
     }
 
-    private fun generateBill() {
+    fun generatePDF(view: View,customerBill: CustomerBill) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+            createPDFFile(customerBill)
+            return
+        }
+        requestStoragePermission.launch(Constants.storagePermission)
+    }
+
+    private fun createPDFFile(customerBill: CustomerBill){
+        val invoiceAddress = ModelInvoiceHeader.ModelAddress(
+            "Line 1",
+            "Line 2",
+            "Line 3"
+        )
+
+        val headerData = ModelInvoiceHeader(
+            "Company Name",
+            "Company Phone",
+            "Company Email"
+        )
+
+        val customerInfo = ModelInvoiceInfo.ModelCustomerInfo(
+            "Name: " + customerBill.customerName,
+            "Phone: "+customerBill.phone,
+            "Aadhar: " + customerBill.aadhaarNo,
+            "Number of People: " + customerBill.noOfPeople
+        )
+
+        val invoiceInfo = ModelInvoiceInfo(
+            customerInfo,
+            "",
+            customerBill.date,
+            customerBill.amount
+        )
+
+        val tableHeader = ModelTableHeader(
+            "Description",
+            "    ",
+            "    ",
+            "    ",
+            "Amount"
+        )
+
+        val tableData = ModelInvoiceItem(
+            customerBill.roomNo,
+            "Alloted Room",
+            "",
+            "",
+            "",
+            customerBill.amount
+        )
+
+
+
+        val invoicePriceInfo = ModelInvoicePriceInfo(
+            "",
+            "",
+            customerBill.amount
+        )
+
+        val footerData = ModelInvoiceFooter("Thanks For Your Business")
+
+        val pdfGenerator = InvoiceGenerator(this).apply {
+            setInvoiceLogo(R.drawable.logo)
+            setInvoiceColor("#000000")
+            setInvoiceHeaderData(headerData)
+            setInvoiceInfo(invoiceInfo)
+            setInvoiceTableHeaderDataSource(tableHeader)
+            setInvoiceTableData(arrayListOf(tableData))
+            setPriceInfoData(invoicePriceInfo)
+            setInvoiceFooterData(footerData)
+        }
+
+        val fileUri = pdfGenerator.generatePDF("${(0..99999).random()}.pdf")
+        try{
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(fileUri,"application/pdf")
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(intent)
+        }catch (e: ActivityNotFoundException){
+            e.printStackTrace()
+            Toast.makeText(this,"There is no PDF Viewer",Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun generateBill(): CustomerBill? {
         if (isAllFilled()) {
 
             val progressBar = ProgressDialog(this).apply {
@@ -96,6 +215,7 @@ class AddCustomerActivity : AppCompatActivity() {
                 selectedRoom,
                 selectedSource
             )
+
 
             var dashedDate : String = ""
             for(i in selectedDate!!){
@@ -125,14 +245,17 @@ class AddCustomerActivity : AppCompatActivity() {
                 .addOnFailureListener { e ->
                     progressBar.dismiss()
                 }
+            return customerBill
 
-            //pass customer by intent
-            val intent = Intent(this, PdfGenerationActivity::class.java)
-            intent.putExtra("customerBill", customerBill)
-            startActivity(intent)
+
         } else {
             Toast.makeText(this, "Please fill above details", Toast.LENGTH_LONG).show()
         }
+        return null
+    }
+
+    private fun toast(s: String) {
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
     }
 
     private fun isAllFilled(): Boolean {
@@ -246,5 +369,9 @@ class AddCustomerActivity : AppCompatActivity() {
 
         binding.textDate.text = formattedDate
         if (selectedDate == null) selectedDate = formattedDate
+    }
+
+    private fun retriveCustomerBill(): CustomerBill?{
+        return generateBill()
     }
 }

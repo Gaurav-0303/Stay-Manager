@@ -1,4 +1,4 @@
-package com.gb.staymanager.PdfGenerator
+package com.gb.staymanager.AddCustomer
 
 import android.Manifest
 

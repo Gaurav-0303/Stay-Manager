@@ -1,4 +1,4 @@
-package com.gb.staymanager.PdfGenerator
+package com.gb.staymanager.AddCustomer
 
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
