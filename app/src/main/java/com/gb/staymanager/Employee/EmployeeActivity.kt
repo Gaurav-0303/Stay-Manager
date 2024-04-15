@@ -1,23 +1,19 @@
 package com.gb.staymanager.Employee
 
-import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
-import androidx.core.view.isEmpty
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.gb.staymanager.Adapters.EmployeeListAdapter
 import com.gb.staymanager.MainActivity
 import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityEmployeeBinding
-import com.gb.staymanager.databinding.DialogAddEmployeeBinding
 import com.gb.staymanager.databinding.DialogEmployeeBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -163,20 +159,7 @@ class EmployeeActivity : AppCompatActivity() {
             override fun onItemClick(position: Int) {
                 val name = employeeList[position].first
                 val number = employeeList[position].second
-                Log.d("Gaurav", number)
-                val option = intent.getStringExtra("option")
-                if(option == "deposit"){
-                    val intent = Intent(this@EmployeeActivity, AddDepositActivity::class.java)
-                    intent.putExtra("name", name)
-                    intent.putExtra("phone", number)
-                    startActivity(intent)
-                }
-                else{
-                    val intent = Intent(this@EmployeeActivity, AddSalaryActivity::class.java)
-                    intent.putExtra("name", name)
-                    intent.putExtra("phone", number)
-                    startActivity(intent)
-                }
+                selectEmployeeOption(name, number)
             }
         })
     }
@@ -193,5 +176,31 @@ class EmployeeActivity : AppCompatActivity() {
             binding.addButtonCenter.visibility = View.GONE
             binding.addEmployee.visibility = View.GONE
         }
+    }
+
+    private fun selectEmployeeOption(name: String, number: String) {
+        val dialogBinding = DialogEmployeeBinding.inflate(layoutInflater)
+        val dialog = BottomSheetDialog(this)
+        dialog.setContentView(dialogBinding.root)
+
+        //employee deposit button
+        dialogBinding.cardEmployeeDeposit.setOnClickListener {
+            dialog.dismiss()
+            val intent = Intent(this, AddDepositActivity::class.java)
+            intent.putExtra("name", name)
+            intent.putExtra("phone", number)
+            startActivity(intent)
+        }
+
+        //employee deposit button
+        dialogBinding.cardEmployeeSalary.setOnClickListener {
+            dialog.dismiss()
+            val intent = Intent(this, AddSalaryActivity::class.java)
+            intent.putExtra("name", name)
+            intent.putExtra("phone", number)
+            startActivity(intent)
+        }
+
+        dialog.show()
     }
 }

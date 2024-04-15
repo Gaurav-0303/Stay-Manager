@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
-    android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="@color/white">
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fitsSystemWindows="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/white"
             app:layout_constraintTop_toTopOf="parent">
 
 
@@ -69,7 +68,6 @@
             app:layout_constraintTop_toBottomOf="@id/welcome_to" />
 
 
-
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_add_customer"
             android:layout_width="match_parent"
@@ -82,8 +80,7 @@
             android:focusable="true"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp"
-            app:layout_constraintTop_toBottomOf="@id/stay_manager"
-            >
+            app:layout_constraintTop_toBottomOf="@id/stay_manager">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -282,19 +279,18 @@
         <!--    </LinearLayout>-->
 
 
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/naview"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        app:menu="@menu/drawer_items"
-        app:itemIconPadding="30dp"
+        android:layout_gravity="start"
         app:dividerInsetStart="50dp"
         app:headerLayout="@layout/drawer_header"
-        android:layout_gravity="start"
-        tools:ignore="MissingConstraints"
-        app:itemTextAppearance="@font/baloo"/>
+        app:itemIconPadding="30dp"
+        app:itemTextAppearance="@font/baloo"
+        app:menu="@menu/drawer_items"
+        tools:ignore="MissingConstraints" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

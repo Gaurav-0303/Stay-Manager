@@ -2,6 +2,7 @@ package com.gb.staymanager.ContactUs
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -15,6 +16,8 @@ class ContactUs_Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityContactUsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        window.statusBarColor = Color.WHITE
 
         binding.contactCard1.setOnClickListener {
             sendEmail("gauravbodake1@gmail.com")

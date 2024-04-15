@@ -33,9 +33,17 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+private val AddCustomerActivity.progressDialog: ProgressDialog
+    get() {
+        val progressBar = ProgressDialog(this).apply {
+            setMessage("Adding Customer...")
+            setCancelable(false)
+            setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        }
+        return progressBar
+    }
+
 class AddCustomerActivity : AppCompatActivity() {
-
-
 
     private lateinit var binding: ActivityAddCustomerBinding
     private var selectedRoom: String = "Select Room"
@@ -46,6 +54,7 @@ class AddCustomerActivity : AppCompatActivity() {
     private lateinit var auth : FirebaseAuth
     private var db = Firebase.firestore
     private val database = Firebase.database
+    private lateinit var progressBar : ProgressDialog
 
     private val requestStoragePermission = requestMultiplePermissions { isGranted ->
         if(isGranted){
@@ -96,18 +105,18 @@ class AddCustomerActivity : AppCompatActivity() {
         isCashOrOnline()
 
         //generate bill
-        binding.cardGenerate.setOnClickListener { val customerBill = generateBill()
-            if(customerBill != null){
-                generatePDF(it, customerBill)
-            }else{
-                toast("Unable to Generate PDF")
-            }
-
+        binding.cardGenerate.setOnClickListener {
+            generateBill()
+//            val customerBill = generateBill()
+//            if(customerBill != null){
+//                generatePDF(it, customerBill)
+//            }else{
+//                toast("Unable to Generate PDF")
+//            }
         }
-
     }
 
-    fun generatePDF(view: View,customerBill: CustomerBill) {
+    private fun generatePDF(view: View, customerBill: CustomerBill) {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
             createPDFFile(customerBill)
             return
@@ -117,15 +126,15 @@ class AddCustomerActivity : AppCompatActivity() {
 
     private fun createPDFFile(customerBill: CustomerBill){
         val invoiceAddress = ModelInvoiceHeader.ModelAddress(
-            "Line 1",
-            "Line 2",
-            "Line 3"
+            "A/P Shendur, Kolhapur",
+            "",
+            ""
         )
 
         val headerData = ModelInvoiceHeader(
-            "Company Name",
-            "Company Phone",
-            "Company Email"
+            "Hotel Diamond",
+            "9697600303",
+            "gauravbodake1@gmail.com"
         )
 
         val customerInfo = ModelInvoiceInfo.ModelCustomerInfo(
@@ -196,7 +205,7 @@ class AddCustomerActivity : AppCompatActivity() {
     private fun generateBill(): CustomerBill? {
         if (isAllFilled()) {
 
-            val progressBar = ProgressDialog(this).apply {
+            progressBar = ProgressDialog(this).apply {
                 setMessage("Adding Customer...")
                 setCancelable(false)
                 setProgressStyle(ProgressDialog.STYLE_SPINNER)
@@ -230,6 +239,7 @@ class AddCustomerActivity : AppCompatActivity() {
             docRef.set(customerBill)
                 .addOnSuccessListener {
                     Toast.makeText(this, "Customer added successfully on $selectedDate", Toast.LENGTH_SHORT).show()
+                    createPDFFile(customerBill)
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
@@ -241,6 +251,7 @@ class AddCustomerActivity : AppCompatActivity() {
             ref.setValue(mapOf("phone" to binding.editTextPhoneNumber.text.toString()))
                 .addOnSuccessListener {
                     progressBar.dismiss()
+
                 }
                 .addOnFailureListener { e ->
                     progressBar.dismiss()

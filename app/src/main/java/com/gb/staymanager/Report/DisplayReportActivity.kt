@@ -90,9 +90,9 @@ class DisplayReportActivity : AppCompatActivity() {
         val sum = reportListAdapter.getSum()
         val cash = reportListAdapter.getCash()
         val online = reportListAdapter.getOnline()
-        binding.totalSum.text = "Total : $sum₹"
-        binding.cash.text = "Cash : $cash₹"
-        binding.online.text = "Online : $online₹"
+        binding.totalText.text = "Total : $sum₹"
+        binding.cashText.text = "Cash : $cash₹"
+        binding.onlineText.text = "Online : $online₹"
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

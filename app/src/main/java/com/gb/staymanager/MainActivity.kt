@@ -1,6 +1,7 @@
 package com.gb.staymanager
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         //transparent background
         window.apply {
             addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            statusBarColor = Color.TRANSPARENT
+            statusBarColor = Color.WHITE
         }
 
         //add customer
@@ -97,6 +98,15 @@ class MainActivity : AppCompatActivity() {
         val alertDialogBuilder = AlertDialog.Builder(this)
             .setView(customDialogBinding.root)
             .setPositiveButton("OK") { dialog, _ ->
+
+                // Show progress dialog
+                val progressBar = ProgressDialog(this).apply {
+                    setMessage("Please wait...")
+                    setCancelable(false)
+                    setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                }
+                progressBar.show()
+
                 val password = passwordEditText.text.toString()
                 // Check the password against Firebase Authentication credentials
                 val currentUser = Firebase.auth.currentUser
@@ -105,9 +115,12 @@ class MainActivity : AppCompatActivity() {
                 currentUser?.reauthenticate(credential)
                     ?.addOnSuccessListener {
                         dialog.dismiss()
-                        selectEmployeeOption()
+                        progressBar.dismiss()
+                        val intent = Intent(this, EmployeeActivity::class.java)
+                        startActivity(intent)
                     }
                     ?.addOnFailureListener {
+                        progressBar.dismiss()
                         // Password is incorrect, show a message
                         // You can customize the message as per your requirement
                         AlertDialog.Builder(this)
@@ -128,29 +141,5 @@ class MainActivity : AppCompatActivity() {
 
         // Show the AlertDialog
         alertDialog.show()
-    }
-
-    private fun selectEmployeeOption() {
-        val dialogBinding = DialogEmployeeBinding.inflate(layoutInflater)
-        val dialog = BottomSheetDialog(this)
-        dialog.setContentView(dialogBinding.root)
-
-        //employee deposit button
-        dialogBinding.cardEmployeeDeposit.setOnClickListener {
-            dialog.dismiss()
-            val intent = Intent(this, EmployeeActivity::class.java)
-            intent.putExtra("option", "deposit")
-            startActivity(intent)
-        }
-
-        //employee deposit button
-        dialogBinding.cardEmployeeSalary.setOnClickListener {
-            dialog.dismiss()
-            val intent = Intent(this, EmployeeActivity::class.java)
-            intent.putExtra("option", "salary")
-            startActivity(intent)
-        }
-
-        dialog.show()
     }
 }

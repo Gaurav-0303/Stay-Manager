@@ -117,7 +117,7 @@ class AddDepositActivity : AppCompatActivity() {
         dialogView.setOnClickListener { selectDate(dialogView) }
 
         val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Add Salary")
+            .setTitle("Add Deposit")
             .setView(dialogView)
             .setPositiveButton("Add") { dialog, _ ->
                 val amount = amountEditText.text.toString() + "₹"
