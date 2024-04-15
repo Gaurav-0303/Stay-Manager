@@ -17,9 +17,6 @@ import com.gb.staymanager.MainActivity
 import com.gb.staymanager.Models.CustomerBill
 import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityAddCustomerBinding
-import com.github.dhaval2404.colorpicker.MaterialColorPickerDialog
-import com.github.dhaval2404.colorpicker.model.ColorShape
-import com.github.dhaval2404.colorpicker.model.ColorSwatch
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
@@ -132,15 +129,15 @@ class AddCustomerActivity : AppCompatActivity() {
 
     private fun createPDFFile(customerBill: CustomerBill){
         val invoiceAddress = ModelInvoiceHeader.ModelAddress(
-            "A/P Shendur, Kolhapur",
+            "Kerle, Kolhapur - 416229",
             "",
             ""
         )
 
         val headerData = ModelInvoiceHeader(
             "Hotel Diamond",
-            "9697600303",
-            "gauravbodake1@gmail.com" , invoiceAddress
+            "07947129185",
+            "" , invoiceAddress
         )
 
         val customerInfo = ModelInvoiceInfo.ModelCustomerInfo(
