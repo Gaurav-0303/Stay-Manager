@@ -56,4 +56,5 @@ dependencies {
     implementation ("com.github.kariot:pdf-invoice-generator:1.0.1")
     implementation ("de.hdodenhof:circleimageview:3.1.0")
     implementation ("com.github.barteksc:android-pdf-viewer:2.8.2")
+    implementation("com.github.Dhaval2404:ColorPicker:2.3")
 }

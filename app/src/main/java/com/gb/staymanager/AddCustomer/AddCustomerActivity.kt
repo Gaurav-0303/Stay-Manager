@@ -17,6 +17,9 @@ import com.gb.staymanager.MainActivity
 import com.gb.staymanager.Models.CustomerBill
 import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityAddCustomerBinding
+import com.github.dhaval2404.colorpicker.MaterialColorPickerDialog
+import com.github.dhaval2404.colorpicker.model.ColorShape
+import com.github.dhaval2404.colorpicker.model.ColorSwatch
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
@@ -56,6 +59,7 @@ class AddCustomerActivity : AppCompatActivity() {
     private val database = Firebase.database
     private lateinit var progressBar : ProgressDialog
 
+
     private val requestStoragePermission = requestMultiplePermissions { isGranted ->
         if(isGranted){
             val customerBill: CustomerBill? = retriveCustomerBill()
@@ -88,6 +92,8 @@ class AddCustomerActivity : AppCompatActivity() {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+
+
 
         //set the date default
         dateSet()
@@ -134,14 +140,14 @@ class AddCustomerActivity : AppCompatActivity() {
         val headerData = ModelInvoiceHeader(
             "Hotel Diamond",
             "9697600303",
-            "gauravbodake1@gmail.com"
+            "gauravbodake1@gmail.com" , invoiceAddress
         )
 
         val customerInfo = ModelInvoiceInfo.ModelCustomerInfo(
             "Name: " + customerBill.customerName,
             "Phone: "+customerBill.phone,
             "Aadhar: " + customerBill.aadhaarNo,
-            "Number of People: " + customerBill.noOfPeople
+            "Source: " + customerBill.source
         )
 
         val invoiceInfo = ModelInvoiceInfo(
@@ -179,7 +185,7 @@ class AddCustomerActivity : AppCompatActivity() {
         val footerData = ModelInvoiceFooter("Thanks For Your Business")
 
         val pdfGenerator = InvoiceGenerator(this).apply {
-            setInvoiceLogo(R.drawable.logo)
+            setInvoiceLogo(R.drawable.hotel_diamond)
             setInvoiceColor("#000000")
             setInvoiceHeaderData(headerData)
             setInvoiceInfo(invoiceInfo)
@@ -385,4 +391,6 @@ class AddCustomerActivity : AppCompatActivity() {
     private fun retriveCustomerBill(): CustomerBill?{
         return generateBill()
     }
+
+
 }
