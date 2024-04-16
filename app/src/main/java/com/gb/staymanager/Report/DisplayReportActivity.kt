@@ -87,10 +87,15 @@ class DisplayReportActivity : AppCompatActivity() {
     }
 
     private fun showTotal() {
-        val sum = reportListAdapter.getSum()
-        val cash = reportListAdapter.getCash()
-        val online = reportListAdapter.getOnline()
-        binding.totalText.text = "Total : $sum₹"
+        var cash = 0.0
+        var online = 0.0
+
+        for(i in reportList){
+            if(i.isCash) cash += i.amount.toDouble()
+            else online += i.amount.toDouble()
+        }
+
+        binding.totalText.text = "Total : ${cash+online}₹"
         binding.cashText.text = "Cash : $cash₹"
         binding.onlineText.text = "Online : $online₹"
     }
@@ -157,7 +162,6 @@ class DisplayReportActivity : AppCompatActivity() {
                 }
                 reportList.sortByDescending { LocalDate.parse(it.date, dateFormat) }
                 reportListAdapter.notifyDataSetChanged()
-                delay(30)
                 showTotal()
             } catch (_: Exception) {
 

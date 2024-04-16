@@ -136,7 +136,7 @@ class AddCustomerActivity : AppCompatActivity() {
 
         val headerData = ModelInvoiceHeader(
             "Hotel Diamond",
-            "07947129185",
+            "9404055797",
             "" , invoiceAddress
         )
 

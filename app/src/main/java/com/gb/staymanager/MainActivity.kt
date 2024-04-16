@@ -74,7 +74,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.contactus -> {
                     startActivity(Intent(this, ContactUs_Activity::class.java))
-                    finish()
                     true
                 }
                 R.id.employee->{
