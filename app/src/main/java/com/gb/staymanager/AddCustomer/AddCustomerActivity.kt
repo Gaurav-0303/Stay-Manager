@@ -192,12 +192,15 @@ class AddCustomerActivity : AppCompatActivity() {
             setInvoiceFooterData(footerData)
         }
 
+        progressBar.dismiss()
+
         val fileUri = pdfGenerator.generatePDF("${(0..99999).random()}.pdf")
         try{
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setDataAndType(fileUri,"application/pdf")
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startActivity(intent)
+            finish()
         }catch (e: ActivityNotFoundException){
             e.printStackTrace()
             Toast.makeText(this,"There is no PDF Viewer",Toast.LENGTH_SHORT).show()
@@ -215,6 +218,16 @@ class AddCustomerActivity : AppCompatActivity() {
             }
             progressBar.show()
 
+            var dashedDate : String = ""
+            for(i in selectedDate!!){
+                dashedDate += if(i == '/') '-'
+                else i;
+            }
+
+            //store data in firestore
+            val docRef = db.collection(auth.currentUser?.email!!).document("customer")
+                .collection(binding.editTextPhoneNumber.text.toString()).document()
+
             val customerBill = CustomerBill(
                 selectedDate!!,
                 binding.editTextCustomerName.text.toString(),
@@ -225,19 +238,9 @@ class AddCustomerActivity : AppCompatActivity() {
                 isCash,
                 isOnline,
                 selectedRoom,
-                selectedSource
+                selectedSource,
+                docRef.id
             )
-
-
-            var dashedDate : String = ""
-            for(i in selectedDate!!){
-                dashedDate += if(i == '/') '-'
-                else i;
-            }
-
-            //store data in firestore
-            val docRef = db.collection(auth.currentUser?.email!!).document("customer")
-                .collection(binding.editTextPhoneNumber.text.toString()).document()
 
             docRef.set(customerBill)
                 .addOnSuccessListener {
@@ -253,7 +256,6 @@ class AddCustomerActivity : AppCompatActivity() {
             val ref = database.getReference(path)
             ref.setValue(mapOf("phone" to binding.editTextPhoneNumber.text.toString()))
                 .addOnSuccessListener {
-                    progressBar.dismiss()
 
                 }
                 .addOnFailureListener { e ->

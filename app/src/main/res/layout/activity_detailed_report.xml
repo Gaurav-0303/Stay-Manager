@@ -8,9 +8,10 @@
     tools:context=".Report.DetailedReportActivity">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/card_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/blue"
+        app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="12dp"
         app:cardUseCompatPadding="true"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,11 +22,62 @@
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
             android:fontFamily="sans-serif-medium"
-            android:textColor="@color/white"
+            android:textColor="@color/grey"
             android:textSize="18sp"
             tools:text="This is the text to test the app only from tools section with multiple lines, how we can see this" />
 
 
     </androidx.cardview.widget.CardView>
+
+<!--    <com.google.android.material.card.MaterialCardView-->
+<!--        android:id="@+id/card_delete"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_margin="12dp"-->
+<!--        android:backgroundTint="#FF2400"-->
+<!--        android:clickable="true"-->
+<!--        android:elevation="4dp"-->
+<!--        android:focusable="true"-->
+<!--        app:cardCornerRadius="12dp"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/card_info">-->
+
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:layout_margin="12dp"-->
+<!--            android:fontFamily="sans-serif-medium"-->
+<!--            android:padding="4dp"-->
+<!--            android:text="Delete Entry"-->
+<!--            android:textColor="@color/white"-->
+<!--            android:textSize="24sp" />-->
+
+<!--        <ImageView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_margin="12dp"-->
+<!--            android:layout_gravity="center_vertical|start"-->
+<!--            android:src="@drawable/baseline_delete_24"-->
+<!--            />-->
+
+<!--    </com.google.android.material.card.MaterialCardView>-->
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/card_info"
+        android:layout_margin="24dp"
+        android:backgroundTint="#FF2400"
+        android:text="Delete this entry"
+        android:fontFamily="@font/baloo"
+        android:textSize="24sp"
+        android:textColor="@color/white"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

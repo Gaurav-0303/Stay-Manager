@@ -9,8 +9,27 @@ import com.gb.staymanager.databinding.IndivisualDepositBinding
 
 class DepositSalaryListAdapter(private val context : Context, private val depositSalaryList : ArrayList<DepositSalary>) : RecyclerView.Adapter<DepositSalaryListAdapter.MyViewHolder>() {
 
+    private lateinit var deleteIconClickListener: OnDeleteIconClickListener
+
+    interface OnDeleteIconClickListener {
+        fun onDeleteIconClick(position: Int)
+    }
+
+    fun setOnDeleteIconClickListener(listener: OnDeleteIconClickListener) {
+        this.deleteIconClickListener = listener
+    }
+
     inner class MyViewHolder(val binding : IndivisualDepositBinding) : RecyclerView.ViewHolder(binding.root){
 
+        init {
+            // Set click listener for the delete icon
+            binding.buttonDelete.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    deleteIconClickListener.onDeleteIconClick(position)
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -26,7 +45,7 @@ class DepositSalaryListAdapter(private val context : Context, private val deposi
         holder.binding.date.text = depositSalaryList[position].date
         holder.binding.amount.text = depositSalaryList[position].amount
         if(depositSalaryList[position].isCash){
-           holder.binding.buttonCashOrOnline.text = "Cash"
+            holder.binding.buttonCashOrOnline.text = "Cash"
         }
         else{
             holder.binding.buttonCashOrOnline.text = "Online"

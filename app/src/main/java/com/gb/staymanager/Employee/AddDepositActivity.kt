@@ -5,7 +5,6 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
@@ -65,7 +64,7 @@ class AddDepositActivity : AppCompatActivity() {
         }
 
         //set up recycler view
-        setUpRecyclerView()
+        setUpRecyclerView(number)
 
         //adding employee by clicking plus button
         binding.addButtonCenter.setOnClickListener { addDialogBox(number!!) }
@@ -94,7 +93,7 @@ class AddDepositActivity : AppCompatActivity() {
                     val amount = data?.get("amount").toString()
                     val cash : Boolean = data?.get("cash") as Boolean
                     val online : Boolean = data.get("online") as Boolean
-                    val depositSalary = DepositSalary(date, amount, cash, online)
+                    val depositSalary = DepositSalary(date, amount, cash, online, document.id)
 
                     depositList.add(0, depositSalary)
                 }
@@ -138,13 +137,14 @@ class AddDepositActivity : AppCompatActivity() {
                         else i;
                     }
 
-                    val depositSalary = DepositSalary(selectedDate!!, amount, isCash, isOnline)
-
                     //store data in firestore
                     val docRef = db.collection(auth.currentUser?.email!!)
                         .document("deposit")
                         .collection(phone)
                         .document()
+
+                    val depositSalary = DepositSalary(selectedDate!!, amount, isCash, isOnline, docRef.id)
+
 
                     docRef.set(depositSalary)
                         .addOnSuccessListener {
@@ -246,11 +246,52 @@ class AddDepositActivity : AppCompatActivity() {
         }
     }
 
-    private fun setUpRecyclerView() {
+    private fun setUpRecyclerView(phone: String) {
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         depositSalaryListAdapter = DepositSalaryListAdapter(this, depositList)
         binding.recyclerView.adapter = depositSalaryListAdapter
 
         changeLayout()
+
+        depositSalaryListAdapter.setOnDeleteIconClickListener(object : DepositSalaryListAdapter.OnDeleteIconClickListener {
+            override fun onDeleteIconClick(position: Int) {
+
+                val dialog = MaterialAlertDialogBuilder(this@AddDepositActivity)
+                    .setTitle("Are you sure, want to delete this deposit?")
+                    .setPositiveButton("Yes") { dialog, _ ->
+                        dialog.dismiss()
+
+                        // Show progress dialog
+                        val progressBar = ProgressDialog(this@AddDepositActivity).apply {
+                            setMessage("Deleting deposit...")
+                            setCancelable(false)
+                            setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                        }
+                        progressBar.show()
+
+                        val docRef = db.collection(auth.currentUser?.email!!).document("deposit")
+                            .collection(phone).document(depositList[position].id)
+
+                        docRef.delete()
+                            .addOnSuccessListener {
+                                progressBar.dismiss()
+                                depositList.removeAt(position)
+                                depositSalaryListAdapter.notifyItemRemoved(position)
+                                changeLayout()
+                                Toast.makeText(this@AddDepositActivity, "Deposit deleted successfully", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                                progressBar.dismiss()
+                                Toast.makeText(this@AddDepositActivity, "Failed to delete deposit", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                    .setNegativeButton("No") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .create()
+                dialog.show()
+            }
+        })
+
     }
 }

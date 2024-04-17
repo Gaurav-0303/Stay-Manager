@@ -1,6 +1,7 @@
 package com.gb.staymanager.Employee
 
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +33,7 @@ class EmployeeActivity : AppCompatActivity() {
     private lateinit var employeeListAdapter : EmployeeListAdapter
     private val database = Firebase.database
     private lateinit var auth : FirebaseAuth
+    private lateinit var context : Context
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +41,7 @@ class EmployeeActivity : AppCompatActivity() {
         setContentView(binding.root)
         auth = Firebase.auth
         employeeList = arrayListOf()
+        context = this
 
         // Retrieve employee data from Firebase
         fetchEmployeeData()
@@ -155,13 +158,59 @@ class EmployeeActivity : AppCompatActivity() {
 
         changeLayout()
 
-        employeeListAdapter.setOnClickListener(object : EmployeeListAdapter.OnItemClickListener{
+        employeeListAdapter.setOnItemClickListener(object : EmployeeListAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
                 val name = employeeList[position].first
                 val number = employeeList[position].second
                 selectEmployeeOption(name, number)
             }
         })
+
+        employeeListAdapter.setOnDeleteIconClickListener(object : EmployeeListAdapter.OnDeleteIconClickListener {
+            override fun onDeleteIconClick(position: Int) {
+                val employee = employeeList[position]
+                val number = employee.second
+
+                val dialog = MaterialAlertDialogBuilder(context)
+                    .setTitle("Are you sure, want to delete this employee?")
+                    .setPositiveButton("Yes") { dialog, _ ->
+                        dialog.dismiss()
+
+                        // Show progress dialog
+                        val progressBar = ProgressDialog(this@EmployeeActivity).apply {
+                            setMessage("Deleting employee...")
+                            setCancelable(false)
+                            setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                        }
+                        progressBar.show()
+
+                        // Remove employee from realtime Firebase
+                        val path = "${auth.currentUser?.uid}/$number"
+                        val ref = database.getReference(path)
+                        ref.removeValue()
+                            .addOnSuccessListener {
+                                progressBar.dismiss()
+                                // Remove employee from the list
+                                employeeList.removeAt(position)
+                                employeeListAdapter.notifyItemRemoved(position)
+                                changeLayout()
+                                Toast.makeText(this@EmployeeActivity, "Employee deleted successfully", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                                progressBar.dismiss()
+                                Toast.makeText(this@EmployeeActivity, "Failed to delete employee", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                    .setNegativeButton("No") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .create()
+                dialog.show()
+
+
+            }
+        })
+
     }
 
     private fun changeLayout() {

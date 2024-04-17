@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
@@ -66,7 +65,7 @@ class AddSalaryActivity : AppCompatActivity() {
         }
 
         //set up recycler view
-        setUpRecyclerView()
+        setUpRecyclerView(number1)
 
         //adding employee by clicking plus button
         binding.addButtonCenter.setOnClickListener { addDialogBox(number1!!) }
@@ -108,7 +107,7 @@ class AddSalaryActivity : AppCompatActivity() {
                     val amount = data?.get("amount").toString()
                     val cash : Boolean = data?.get("cash") as Boolean
                     val online : Boolean = data.get("online") as Boolean
-                    val depositSalary = DepositSalary(date, amount, cash, online)
+                    val depositSalary = DepositSalary(date, amount, cash, online, document.id)
 
                     salaryList.add(0, depositSalary)
                 }
@@ -195,13 +194,14 @@ class AddSalaryActivity : AppCompatActivity() {
                         else i;
                     }
 
-                    val depositSalary = DepositSalary(selectedDate!!, amount, isCash, isOnline)
 
                     //store data in firestore
                     val docRef = db.collection(auth.currentUser?.email!!)
                         .document("salary")
                         .collection(phone)
                         .document()
+
+                    val depositSalary = DepositSalary(selectedDate!!, amount, isCash, isOnline, docRef.id)
 
                     docRef.set(depositSalary)
                         .addOnSuccessListener {
@@ -213,7 +213,7 @@ class AddSalaryActivity : AppCompatActivity() {
                             Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
                         }
 
-                    salaryList.add(0, DepositSalary(selectedDate!!, amount, isCash, isOnline))
+                    salaryList.add(0, DepositSalary(selectedDate!!, amount, isCash, isOnline, docRef.id))
                     salaryList.sortWith(compareByDescending { it.date })
                     depositSalaryListAdapter.notifyDataSetChanged()
                     changeLayout()
@@ -243,11 +243,52 @@ class AddSalaryActivity : AppCompatActivity() {
         }
     }
 
-    private fun setUpRecyclerView() {
+    private fun setUpRecyclerView(phone: String) {
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         depositSalaryListAdapter = DepositSalaryListAdapter(this, salaryList)
         binding.recyclerView.adapter = depositSalaryListAdapter
 
         changeLayout()
+
+        depositSalaryListAdapter.setOnDeleteIconClickListener(object : DepositSalaryListAdapter.OnDeleteIconClickListener {
+            override fun onDeleteIconClick(position: Int) {
+
+                val dialog = MaterialAlertDialogBuilder(this@AddSalaryActivity)
+                    .setTitle("Are you sure, want to delete this salary?")
+                    .setPositiveButton("Yes") { dialog, _ ->
+                        dialog.dismiss()
+
+                        // Show progress dialog
+                        val progressBar = ProgressDialog(this@AddSalaryActivity).apply {
+                            setMessage("Deleting salary...")
+                            setCancelable(false)
+                            setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                        }
+                        progressBar.show()
+
+                        val docRef = db.collection(auth.currentUser?.email!!).document("salary")
+                            .collection(phone).document(salaryList[position].id)
+
+                        docRef.delete()
+                            .addOnSuccessListener {
+                                progressBar.dismiss()
+                                salaryList.removeAt(position)
+                                depositSalaryListAdapter.notifyItemRemoved(position)
+                                changeLayout()
+                                Toast.makeText(this@AddSalaryActivity, "Salary deleted successfully", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                                progressBar.dismiss()
+                                Toast.makeText(this@AddSalaryActivity, "Failed to delete salary", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                    .setNegativeButton("No") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .create()
+                dialog.show()
+            }
+        })
+
     }
 }

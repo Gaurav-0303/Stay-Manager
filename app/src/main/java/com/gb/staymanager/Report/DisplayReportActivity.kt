@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.gb.staymanager.Adapters.ReportListAdapter
@@ -145,26 +146,30 @@ class DisplayReportActivity : AppCompatActivity() {
                                 (dateToCheck.isAfter(startDateG) && dateToCheck.isBefore(endDateG))
 
                         if(isBetween){
-                            reportList.add(CustomerBill(
-                                data["date"] as String,
-                                data["customerName"] as String,
-                                data["phone"] as String,
-                                data["noOfPeople"] as String,
-                                data["aadhaarNo"] as String,
-                                data["amount"] as String,
-                                data["cash"] as Boolean,
-                                data["online"] as Boolean,
-                                data["roomNo"] as String,
-                                data["source"] as String
-                            ))
+                            if(data["id"] != null){
+                                reportList.add(CustomerBill(
+                                    data["date"] as String,
+                                    data["customerName"] as String,
+                                    data["phone"] as String,
+                                    data["noOfPeople"] as String,
+                                    data["aadhaarNo"] as String,
+                                    data["amount"] as String,
+                                    data["cash"] as Boolean,
+                                    data["online"] as Boolean,
+                                    data["roomNo"] as String,
+                                    data["source"] as String,
+                                    data["id"] as String,
+                                ))
+                            }
                         }
                     }
                 }
                 reportList.sortByDescending { LocalDate.parse(it.date, dateFormat) }
                 reportListAdapter.notifyDataSetChanged()
                 showTotal()
-            } catch (_: Exception) {
-
+            } catch (e: Exception) {
+                Log.d("BBBBBB", reportList.size.toString())
+                Log.d("BBBBBB", e.toString())
             } finally {
                 progressBar.dismiss()
             }
@@ -206,7 +211,8 @@ class DisplayReportActivity : AppCompatActivity() {
                     reportList[position].isCash,
                     reportList[position].isOnline,
                     reportList[position].roomNo,
-                    reportList[position].source
+                    reportList[position].source,
+                    reportList[position].id,
                 )
                 val intent = Intent(this@DisplayReportActivity, DetailedReportActivity::class.java)
                 intent.putExtra("customerBill", customerBill)
