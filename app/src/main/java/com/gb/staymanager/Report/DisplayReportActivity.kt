@@ -1,5 +1,6 @@
 package com.gb.staymanager.Report
 
+import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
@@ -8,10 +9,12 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.gb.staymanager.Adapters.ReportListAdapter
 import com.gb.staymanager.Models.CustomerBill
+import com.gb.staymanager.R
 import com.gb.staymanager.databinding.ActivityDisplayReportBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -84,6 +87,8 @@ class DisplayReportActivity : AppCompatActivity() {
 
         //retrieve data from firebase
         retrieveData(startDate, endDate)
+
+
     }
 
     private fun showTotal() {

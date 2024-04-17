@@ -13,6 +13,7 @@ import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import com.gb.staymanager.MainActivity
 import com.gb.staymanager.Models.CustomerBill
 import com.gb.staymanager.R
@@ -22,6 +23,12 @@ import com.github.dhaval2404.colorpicker.model.ColorShape
 import com.github.dhaval2404.colorpicker.model.ColorSwatch
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
 import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -33,7 +40,11 @@ import me.kariot.invoicegenerator.data.ModelInvoicePriceInfo
 import me.kariot.invoicegenerator.data.ModelTableHeader
 import me.kariot.invoicegenerator.utils.InvoiceGenerator
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 private val AddCustomerActivity.progressDialog: ProgressDialog
@@ -57,15 +68,19 @@ class AddCustomerActivity : AppCompatActivity() {
     private lateinit var auth : FirebaseAuth
     private var db = Firebase.firestore
     private val database = Firebase.database
+    private lateinit var databaseReference: DatabaseReference
     private lateinit var progressBar : ProgressDialog
+    private var incrementedCount: Int = 0
+    private var customerBill: CustomerBill? = null
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private val requestStoragePermission = requestMultiplePermissions { isGranted ->
         if(isGranted){
             val customerBill: CustomerBill? = retriveCustomerBill()
 
             if(customerBill != null){
-                createPDFFile(customerBill)
+                createPDFFile(customerBill,incrementedCount)
             }else{
                 toast("Unable to generate PDF")
             }
@@ -75,6 +90,7 @@ class AddCustomerActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddCustomerBinding.inflate(layoutInflater)
@@ -92,6 +108,8 @@ class AddCustomerActivity : AppCompatActivity() {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("cnt")
 
 
 
@@ -113,6 +131,7 @@ class AddCustomerActivity : AppCompatActivity() {
         //generate bill
         binding.cardGenerate.setOnClickListener {
             generateBill()
+            incrementCount()
 //            val customerBill = generateBill()
 //            if(customerBill != null){
 //                generatePDF(it, customerBill)
@@ -122,18 +141,23 @@ class AddCustomerActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun generatePDF(view: View, customerBill: CustomerBill) {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-            createPDFFile(customerBill)
+            createPDFFile(customerBill,incrementedCount)
             return
         }
         requestStoragePermission.launch(Constants.storagePermission)
     }
 
-    private fun createPDFFile(customerBill: CustomerBill){
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createPDFFile(customerBill: CustomerBill,incrementedCount: Int){
+
+        val invoiceNumber = "INV-$incrementedCount"
+
         val invoiceAddress = ModelInvoiceHeader.ModelAddress(
             "A/P Shendur, Kolhapur",
-            "",
+            getCurrentTime(),
             ""
         )
 
@@ -152,7 +176,7 @@ class AddCustomerActivity : AppCompatActivity() {
 
         val invoiceInfo = ModelInvoiceInfo(
             customerInfo,
-            "",
+            invoiceNumber,
             customerBill.date,
             customerBill.amount
         )
@@ -208,6 +232,7 @@ class AddCustomerActivity : AppCompatActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun generateBill(): CustomerBill? {
         if (isAllFilled()) {
 
@@ -245,7 +270,7 @@ class AddCustomerActivity : AppCompatActivity() {
             docRef.set(customerBill)
                 .addOnSuccessListener {
                     Toast.makeText(this, "Customer added successfully on $selectedDate", Toast.LENGTH_SHORT).show()
-                    createPDFFile(customerBill)
+                    createPDFFile(customerBill,incrementedCount)
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
@@ -388,9 +413,49 @@ class AddCustomerActivity : AppCompatActivity() {
         if (selectedDate == null) selectedDate = formattedDate
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun retriveCustomerBill(): CustomerBill?{
         return generateBill()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun getCurrentTime(): String{
+        val currentTime = Date()
+
+        val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm:ss",Locale.getDefault())
+
+        return formatter.format(currentTime)
+    }
+
+    private fun incrementCount(){
+        databaseReference.runTransaction(object : Transaction.Handler{
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                var currentCount = currentData.getValue(Int::class.java) ?: 0
+
+                currentCount++
+
+                incrementedCount = currentCount
+
+                currentData.value = currentCount
+
+                return Transaction.success(currentData)
+            }
+
+            @RequiresApi(Build.VERSION_CODES.O)
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                currentData: DataSnapshot?
+            ) {
+                if(committed && error == null){
+                    customerBill?.let {
+                        createPDFFile(it,incrementedCount)
+                    }
+                }else{
+
+                }
+            }
+        })
+    }
 
 }
